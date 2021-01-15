@@ -1,0 +1,13 @@
+* {
+    margin: 0;
+    box-sizing: border-box;
+    background-color: #fff4e7;
+    font-family: "Quicksand", sans-serif;
+}
+
+.table-div {
+    display: flex;
+}
+.table-div * {
+    padding: 10px;
+}
