@@ -11,3 +11,26 @@
 .table-div * {
     padding: 10px;
 }
+
+.modal-parent {
+    position: relative;
+    height: 100%;
+    width: 100%;
+}
+.modal-div {
+    position: fixed;
+    height: 500px;
+    top: 15%;
+    left: 35%;
+    display: flex;
+    overflow: scroll;
+    background-color: grey;
+}
+
+.modal-div {
+    padding: 0px 20px 0px 20px;
+}
+
+.modal-div p {
+    padding: 10px 20px 10px 20px;
+}

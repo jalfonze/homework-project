@@ -1,11 +1,22 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
+function sortAscending(key) {
+    return (a, b) => a[key] - b[key];
+}
+function sortDescending(key) {
+    return (a, b) => b[key] - a[key];
+}
 function App() {
+    // hey there
+    const [defaultData, setDefaultData] = useState([]);
     const [data, setData] = useState([]);
-    // const [carrier, setCarrier] = useState(undefined);
-    // const [runEffect, setEffect] = useState(false);
-    // const [column, setColumn] = useState("");
+    const [dataVal, setDataValue] = useState([]);
+    const [dataKey, setDataKeys] = useState([]);
+    const [ordered, setOrdered] = useState(false);
+    const [modal, setModal] = useState(false);
+    const [from, setFrom] = useState("");
+    const [to, setTo] = useState("");
 
     useEffect(() => {
         axios
@@ -13,129 +24,269 @@ function App() {
             // .then((res) => res.json())
             .then((res) => {
                 // console.log(res.data);
+                setDefaultData(res.data);
                 setData(res.data);
             })
             .catch((err) => err);
     }, []);
 
-    const columnSet = (col) => {
-        order(col);
+    const order = (prop) => {
+        console.log("click");
+
+        const sortedOrder = data.sort(
+            ordered ? sortAscending(prop) : sortDescending(prop)
+        );
+
+        setData(sortedOrder);
+        setOrdered(!ordered);
     };
 
-    const order = (col) => {
-        if (col === "a") {
-            const aOrder = data.sort((a, b) => {
-                return a.carrier_company_id - b.carrier_company_id;
-            });
-            setData(aOrder);
-            console.log(aOrder, "A");
-        } else if (col === "b") {
-            const bOrder = data.sort((a, b) => {
-                return a.total_co2_emitted - b.total_co2_emitted;
-            });
-            // setData(bOrder);
-            console.log(bOrder, "B");
+    const carrierInfo = (info) => {
+        const dataVal = Object.values(data[info]);
+        const dataKey = Object.keys(data[info]);
+        setDataValue(dataVal);
+        setDataKeys(dataKey);
+        setModal(true);
+    };
+
+    const closeModal = () => {
+        if (modal) {
+            setModal(false);
         }
     };
 
-    // console.log(column);
+    const filterBy = (prop) => {
+        console.log("click");
+        if (prop === "default" || prop === "primary" || prop === "modeled") {
+            const filteredResults = defaultData.filter(
+                (data) => data.type_of_calculations === prop
+            );
+            console.log(filteredResults);
+            setData(filteredResults);
+        } else if (
+            prop === "Cereals" ||
+            prop === "Container" ||
+            prop === "Chemicals"
+        ) {
+            const filteredResults = defaultData.filter(
+                (data) => data.type_of_goods === prop
+            );
+            console.log(filteredResults);
+            setData(filteredResults);
+        }
+    };
 
+    const handleFrom = (e) => {
+        console.log(e.target.value);
+        setFrom(e.target.value);
+    };
+    const handleTo = (e) => {
+        setTo(e.target.value);
+    };
+
+    const betweenCities = (e) => {
+        e.preventDefault();
+        console.log("FROM ", from, "TO ", to);
+        const locationData = defaultData.filter((data) => {
+            return data.start_city === from && data.end_city === to;
+        });
+        console.log(locationData);
+        if (locationData.length === 0) {
+            setData("No Value");
+        } else {
+            console.log(data);
+            setData(locationData);
+        }
+    };
+
+    const resetFilter = () => setData(defaultData);
     return (
         <div className="App">
             <header className="App-header">
                 <h1>Welcome to your new project</h1>
-                <div className="table-div">
-                    <div>
-                        <h2 onClick={() => columnSet("a")}>Carrier</h2>
-                        {(data.length === 0 && <p>loading</p>) ||
-                            (data &&
-                                data.map((info, i) => {
-                                    return (
-                                        <div key={i}>
-                                            <p>{info.carrier_company_id}</p>
-                                        </div>
-                                    );
-                                }))}
-                    </div>
-                    <div>
-                        <h2 onClick={() => columnSet("b")}>co2 Emitted</h2>
-                        {(data.length === 0 && <p>loading</p>) ||
-                            (data &&
-                                data.map((info, i) => {
-                                    return (
-                                        <div key={i}>
-                                            <p>{info.total_co2_emitted}</p>
-                                        </div>
-                                    );
-                                }))}
-                    </div>
-                    <div>
-                        <h2>Fuel consumed</h2>
-                        {(data.length === 0 && <p>loading</p>) ||
-                            (data &&
-                                data.map((info, i) => {
-                                    return (
-                                        <div key={i}>
-                                            {(info.fuel_consumed === null && (
-                                                <p>null</p>
-                                            )) || <p>{info.fuel_consumed}</p>}
-                                        </div>
-                                    );
-                                }))}
-                    </div>
-                    <div>
-                        <h2>Total distance travelled</h2>
-                        {(data.length === 0 && <p>loading</p>) ||
-                            (data &&
-                                data.map((info, i) => {
-                                    return (
-                                        <div key={i}>
-                                            <p>{info.travelled_distance}</p>
-                                        </div>
-                                    );
-                                }))}
-                    </div>
-                    <div>
-                        <h2>Average weight</h2>
-                        {(data.length === 0 && <p>loading</p>) ||
-                            (data &&
-                                data.map((info, i) => {
-                                    return (
-                                        <div key={i}>
-                                            <p>{info.weight}</p>
-                                        </div>
-                                    );
-                                }))}
+            </header>
+            <nav>
+                <h1>Filter by type of calculations</h1>
+                <button onClick={() => filterBy("default")}>Default</button>
+                <button onClick={() => filterBy("primary")}>Primary</button>
+                <button onClick={() => filterBy("modeled")}>Modeled</button>
+                <h1>Filter by type of goods</h1>
+                <button onClick={() => filterBy("Cereals")}>Cereals</button>
+                <button onClick={() => filterBy("Chemicals")}>Chemicals</button>
+                <button onClick={() => filterBy("Container")}>Container</button>
+            </nav>
+            <form>
+                <h2>From:</h2>
+                <input
+                    onChange={handleFrom}
+                    type="radio"
+                    id="one"
+                    name="between-city"
+                    value="Hamburg"
+                ></input>
+                <label htmlFor="one">Hamburg</label>
+                <input
+                    onChange={handleFrom}
+                    type="radio"
+                    id="two"
+                    name="between-city"
+                    value="Berlin"
+                ></input>
+                <label htmlFor="two">Berlin</label>
+                <input
+                    onChange={handleFrom}
+                    type="radio"
+                    id="three"
+                    name="between-city"
+                    value="München"
+                ></input>
+                <label htmlFor="three">München</label>
+                <h2>To:</h2>
+                <input
+                    onChange={handleTo}
+                    type="radio"
+                    id="four"
+                    name="between-city"
+                    value="Bremen"
+                ></input>
+            </form>
+            <form>
+                <label htmlFor="four">Bremen</label>
+                <input
+                    onChange={handleTo}
+                    type="radio"
+                    id="five"
+                    name="between-city"
+                    value="Berlin"
+                ></input>
+                <label htmlFor="five">Berlin</label>
+                <input
+                    onChange={handleTo}
+                    type="radio"
+                    id="six"
+                    name="between-city"
+                    value="München"
+                ></input>
+                <label htmlFor="six">München</label>
+                <input
+                    onChange={handleTo}
+                    type="radio"
+                    id="six"
+                    name="between-city"
+                    value="Hamburg"
+                ></input>
+                <label htmlFor="six">Hamburg</label>
+                <input
+                    type="submit"
+                    value="filter"
+                    onClick={betweenCities}
+                ></input>
+            </form>
+            <button onClick={resetFilter}>Reset Filters</button>
+            <div className="table-div" onClick={closeModal}>
+                <div>
+                    <h2 onClick={() => order("carrier_company_id")}>Carrier</h2>
+                    {(data.length === 0 && <p>loading</p>) ||
+                        (data === "No Value" && <p>No Results</p>) ||
+                        (data &&
+                            data.map((info, i) => {
+                                return (
+                                    <div key={i}>
+                                        <p onClick={() => carrierInfo(i)}>
+                                            {info.id}
+                                        </p>
+                                    </div>
+                                );
+                            }))}
+                </div>
+                <div>
+                    <h2 onClick={() => order("total_co2_emitted")}>
+                        co2 Emitted
+                    </h2>
+                    {(data.length === 0 && <p>loading</p>) ||
+                        (data === "No Value" && <p>No Results</p>) ||
+                        (data &&
+                            data.map((info, i) => {
+                                return (
+                                    <div key={i}>
+                                        <p>{info.total_co2_emitted}</p>
+                                    </div>
+                                );
+                            }))}
+                </div>
+                <div>
+                    <h2 onClick={() => order("fuel_consumed")}>
+                        Fuel consumed
+                    </h2>
+                    {(data.length === 0 && <p>loading</p>) ||
+                        (data === "No Value" && <p>No Results</p>) ||
+                        (data &&
+                            data.map((info, i) => {
+                                return (
+                                    <div key={i}>
+                                        {(info.fuel_consumed === null && (
+                                            <p>null</p>
+                                        )) || <p>{info.fuel_consumed}</p>}
+                                    </div>
+                                );
+                            }))}
+                </div>
+                <div>
+                    <h2 onClick={() => order("travelled_distance")}>
+                        Total distance travelled
+                    </h2>
+                    {(data.length === 0 && <p>loading</p>) ||
+                        (data === "No Value" && <p>No Results</p>) ||
+                        (data &&
+                            data.map((info, i) => {
+                                return (
+                                    <div key={i}>
+                                        <p>{info.travelled_distance}</p>
+                                    </div>
+                                );
+                            }))}
+                </div>
+                <div>
+                    <h2 onClick={() => order("weight")}>Average weight</h2>
+                    {(data.length === 0 && <p>loading</p>) ||
+                        (data === "No Value" && <p>No Results</p>) ||
+                        (data &&
+                            data.map((info, i) => {
+                                return (
+                                    <div key={i}>
+                                        <p>{info.weight}</p>
+                                    </div>
+                                );
+                            }))}
+                </div>
+            </div>
+            {modal && (
+                <div className="modal-parent">
+                    <div className="modal-div">
+                        <div>
+                            {dataKey.map((info, i) => {
+                                return (
+                                    <div key={i}>
+                                        <p>{info}</p>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <div>
+                            {dataVal.map((info, i) => {
+                                return (
+                                    <div key={i}>
+                                        {(info === null && <p>null</p>) || (
+                                            <p>{info}</p>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
-            </header>
+            )}
         </div>
     );
 }
 export default App;
-
-// const order = () => {
-//     console.log("click");
-//     if (carrier === undefined) {
-//         const idOrder = data.sort((a, b) => {
-//             return a.carrier_company_id - b.carrier_company_id;
-//         });
-//         // console.log(idOrder, "order");
-//         setData(idOrder);
-//         setCarrier(true);
-//     } else if (carrier === true) {
-//         const idOrder = data.sort((a, b) => {
-//             return b.carrier_company_id - a.carrier_company_id;
-//         });
-//         // console.log(idOrder, "order");
-//         setData(idOrder);
-//         setCarrier(false);
-//     } else if (carrier === false) {
-//         if (runEffect === true) {
-//             setEffect(false);
-//         } else {
-//             setEffect(true);
-//         }
-//         setCarrier(undefined);
-//     }
-// };
