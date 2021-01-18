@@ -162,6 +162,8 @@ function Analytics() {
                             value="München"
                         ></input>
                         <label htmlFor="three">München</label>
+                    </form>
+                    <form>
                         <h2>To:</h2>
                         <input
                             onChange={handleTo}
@@ -170,8 +172,6 @@ function Analytics() {
                             name="between-city"
                             value="Bremen"
                         ></input>
-                    </form>
-                    <form>
                         <label htmlFor="four">Bremen</label>
                         <input
                             onChange={handleTo}
